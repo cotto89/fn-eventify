@@ -1,0 +1,44 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "lib": [
+            "es2017"
+        ],
+        "declaration": true,
+        "outDir": "dist",
+        "allowSyntheticDefaultImports": false,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitUseStrict": false,
+        // https://github.com/power-assert-js/espower-typescript/issues/16
+        // trueにするとespower-assertが動かない(?)
+        // その他にもテストが外部からファイルをimportしてないとerrorになる(?)
+        "noEmitOnError": false,
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true,
+        "traceResolution": false,
+        "listFiles": false,
+        "stripInternal": true,
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": false,
+        "pretty": true,
+        "types": [
+            "mocha",
+            "node"
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "test/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
