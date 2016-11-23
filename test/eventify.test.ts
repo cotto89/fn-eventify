@@ -54,15 +54,26 @@ describe('Eventify', () => {
     describe('emit.inject()', () => {
         it('return emit function', () => {
             const emitA = Eventor.eventify('DEMO');
-            const emitB = emitA.inject({ extra: true });
+            const emitB = emitA.inject((e) => Object.assign(e, { extra: true }));
             assert(emitA === emitB);
         });
 
-        it('inject extra props to event object', () => {
-            const emit = Eventor.eventify('DEMO').inject({ extra: true });
-            emit.subscribe(spy);
-            emit();
-            assert(spy.calledWithExactly({ name: 'DEMO', payload: undefined, extra: true }));
+        context('when attcher is function', () => {
+            it('inject extra props to event', () => {
+                const emit = Eventor.eventify('DEMO').inject((e) => Object.assign(e, { extra: true }));
+                emit.subscribe(spy);
+                emit();
+                assert(spy.calledWithExactly({ name: 'DEMO', payload: undefined, extra: true }));
+            });
+        });
+
+        context('when attcher is Object', () => {
+            it('inject extra props to event object', () => {
+                const emit = Eventor.eventify('DEMO').inject({ extra: true });
+                emit.subscribe(spy);
+                emit();
+                assert(spy.calledWithExactly({ name: 'DEMO', payload: undefined, extra: true }));
+            });
         });
     });
 

@@ -1,12 +1,18 @@
 "use strict";
 const events = require('events');
 exports.ALL_EVENT = Symbol('ALL_EVENT');
-function createEvent(name, payload, attachment = {}) {
-    const event = {
-        name,
-        payload,
-    };
-    return Object.assign(event, attachment);
+function createEvent(name, payload, attacher = {}) {
+    let event = { name, payload };
+    if (typeof attacher === 'function') {
+        const attachment = attacher(event);
+        if (attachment) {
+            event = attachment;
+        }
+    }
+    else {
+        event = Object.assign(event, attacher);
+    }
+    return event;
 }
 function create() {
     const emitter = new events.EventEmitter();
@@ -19,18 +25,18 @@ function create() {
         return () => emitter.removeListener(eventName, listener);
     }
     function eventify(eventName, callback) {
-        let attachment;
+        let $attacher = {};
         function emit(args) {
             const payload = callback ? callback(args) : undefined;
             if (payload instanceof Promise) {
                 Promise.resolve(payload).then(v => {
-                    const event = createEvent(eventName, v, attachment);
+                    const event = createEvent(eventName, v, $attacher);
                     emitter.emit(eventName, event);
                     emitter.emit(exports.ALL_EVENT, event);
                 });
             }
             else {
-                const event = createEvent(eventName, payload, attachment);
+                const event = createEvent(eventName, payload, $attacher);
                 emitter.emit(eventName, event);
                 emitter.emit(exports.ALL_EVENT, event);
             }
@@ -38,8 +44,8 @@ function create() {
         }
         let f = emit;
         f.subscribe = (listener) => subscribe(eventName, listener);
-        f.inject = (extraEventProps) => {
-            attachment = extraEventProps;
+        f.inject = (attacher) => {
+            $attacher = attacher;
             return f;
         };
         let $emit = f;
