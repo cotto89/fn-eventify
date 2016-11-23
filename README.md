@@ -40,25 +40,7 @@ Eventor.eventify('ASYNC_SOMETHING', () => Promise.resolve());
 ```
 
 
-### Subscribing an event
-
-```js
-greet.subscribe((event) => {...});
-```
-
-```js
-Eventor.subscribe('GREET', (event) => {...})
-```
-
-You can listen all event.
-
-```js
-Eventor.subscribeAll((event) => {...})
-```
-
-### Unsubscribing an event
-
-`subscribe()` return `unsubscribe()`.
+### Subscribing / Unsubscribing an event
 
 ```js
 const unsubscribe = greet.subscribe((event) => {...});
@@ -69,6 +51,8 @@ unsubscribe();
 const unsubscribe = Eventor.subscribe('GREET', (event) => {...})
 unsubscribe();
 ```
+
+You can listen all event.
 
 ```js
 const unsubscribe = Eventor.subscribeAll((event) => {...})
@@ -96,22 +80,31 @@ assert.equal(message, 'hello world')
 
 ### Extending an Event Structure
 
-You can use `inject()`.
+You can use `inject((event: EventifyEvent) => EventifyEvent | {[prop: string]: any})`.
+
 
 ```js
-const greet = Eventor.eventify('GREET', (message) => `hello ${message}`)
-	.inject({ greetor: 'cotto' })
+const greet = Eventor.eventify('GREET', (message) => `${message}`)
+	.inject((event) => Object.assign(event, { greetor: 'cotto' })) // inject by callback
+```
 
+or
+
+```js
+const greet = Eventor.eventify('GREET', (message) => `${message}`)
+	.inject({ greetor: 'cotto' }) // inject by Object
+```
+
+then
+
+```js
 greet.subscribe((event) => {
 	assert.deepEqual(event, {
 		name: 'GREET',
 		payload: 'hello world',
-		greetor: 'cotto'
+		greetor: 'cotto' // injected extra props
 	})
 })
 
-greet('world'); //-> hello world
+greet('hello world'); //-> hello world
 ```
-
-
-
