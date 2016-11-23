@@ -8,21 +8,33 @@ export interface EventifyEvent {
 
 export type Listener = (event: EventifyEvent) => any;
 
+export type AttacherFn = (event: EventifyEvent) => EventifyEvent
+export type AttacherObj = { [prop: string]: any }
+export type Attacher = AttacherFn | AttacherObj
+
 export type Emit<Args, Payload> = {
     (args?: Args): Payload;
     subscribe: (listener: Listener) => Function;
-    inject: (extraEventProps: { [key: string]: any }) => Emit<Args, Payload>
+    inject: (attacher: Attacher) => Emit<Args, Payload>
 }
 
 export const ALL_EVENT = Symbol('ALL_EVENT');
 
-function createEvent(name: string, payload: any, attachment: Object = {}): EventifyEvent {
-    const event = {
-        name,
-        payload,
-    };
+function createEvent(name: string, payload: any, attacher: Attacher = {}): EventifyEvent {
+    let event = { name, payload };
 
-    return Object.assign(event, attachment);
+    if (typeof attacher === 'function') {
+        const attachment = attacher(event);
+
+        if (attachment) {
+            event = attachment;
+        }
+
+    } else {
+        event = Object.assign(event, attacher);
+    }
+
+    return event;
 }
 
 export function create() {
@@ -40,19 +52,19 @@ export function create() {
 
     function eventify<Args, Payload>(eventName: string, callback?: (args?: Args) => Payload) {
 
-        let attachment: { [key: string]: any };
+        let $attacher: Attacher = {};
 
         function emit(args?: Args) {
             const payload = callback ? callback(args) : undefined;
 
             if (payload instanceof Promise) {
                 Promise.resolve(payload).then(v => {
-                    const event = createEvent(eventName, v, attachment);
+                    const event = createEvent(eventName, v, $attacher);
                     emitter.emit(eventName, event);
                     emitter.emit(ALL_EVENT, event);
                 });
             } else {
-                const event = createEvent(eventName, payload, attachment);
+                const event = createEvent(eventName, payload, $attacher);
                 emitter.emit(eventName, event);
                 emitter.emit(ALL_EVENT, event);
             }
@@ -64,8 +76,8 @@ export function create() {
 
         f.subscribe = (listener: Listener) => subscribe(eventName, listener);
 
-        f.inject = (extraEventProps: {}) => {
-            attachment = extraEventProps;
+        f.inject = (attacher: Attacher) => {
+            $attacher = attacher;
             return f as Emit<Args, Payload>;
         };
 
