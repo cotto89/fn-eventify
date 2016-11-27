@@ -42,14 +42,14 @@ function create() {
             }
             return payload;
         }
-        let f = emit;
-        f.subscribe = (listener) => subscribe(eventName, listener);
-        f.inject = (attacher) => {
-            $attacher = attacher;
-            return f;
+        const option = {
+            subscribe: (listener) => subscribe(eventName, listener),
+            inject: (attacher) => {
+                $attacher = attacher;
+                return Object.assign(emit, option);
+            },
         };
-        let $emit = f;
-        return $emit;
+        return Object.assign(emit, option);
     }
     return {
         eventify,
