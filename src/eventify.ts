@@ -7,16 +7,9 @@ export interface EventifyEvent {
 }
 
 export type Listener = (event: EventifyEvent) => any;
-
 export type AttacherFn = (event: EventifyEvent) => EventifyEvent
 export type AttacherObj = { [prop: string]: any }
 export type Attacher = AttacherFn | AttacherObj
-
-export type Emit<Args, Payload> = {
-    (args?: Args): Payload;
-    subscribe: (listener: Listener) => Function;
-    inject: (attacher: Attacher) => Emit<Args, Payload>
-}
 
 export const ALL_EVENT = Symbol('ALL_EVENT');
 
@@ -72,17 +65,15 @@ export function create() {
             return payload;
         }
 
-        let f: any = emit;
-
-        f.subscribe = (listener: Listener) => subscribe(eventName, listener);
-
-        f.inject = (attacher: Attacher) => {
-            $attacher = attacher;
-            return f as Emit<Args, Payload>;
+        const option = {
+            subscribe: (listener: Listener) => subscribe(eventName, listener),
+            inject: (attacher: Attacher) => {
+                $attacher = attacher;
+                return Object.assign(emit, option);
+            },
         };
 
-        let $emit: Emit<Args, Payload> = f;
-        return $emit;
+        return Object.assign(emit, option);
     }
 
     return {
