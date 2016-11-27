@@ -26,7 +26,7 @@ function create() {
     }
     function eventify(eventName, callback) {
         let $attacher = {};
-        function emit(args) {
+        const emit = (args) => {
             const payload = callback ? callback(args) : undefined;
             if (payload instanceof Promise) {
                 Promise.resolve(payload).then(v => {
@@ -41,15 +41,16 @@ function create() {
                 emitter.emit(exports.ALL_EVENT, event);
             }
             return payload;
-        }
+        };
         const option = {
             subscribe: (listener) => subscribe(eventName, listener),
             inject: (attacher) => {
                 $attacher = attacher;
-                return Object.assign(emit, option);
+                return emit;
             },
         };
-        return Object.assign(emit, option);
+        const $emit = Object.assign(emit, option);
+        return $emit;
     }
     return {
         eventify,

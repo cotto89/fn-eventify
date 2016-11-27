@@ -101,8 +101,8 @@ describe('Eventify', () => {
     describe('subscribeAll', function () {
         it('listen all event', () => {
             const emitter = Eventor._emitter;
-            const emitA = Eventor.eventify('DEMO-A').inject({ extra: true });
-            const emitB = Eventor.eventify('DEMO-B').inject(e => Object.assign(e, { extra: true }));
+            const emitA = Eventor.eventify('DEMO-A');
+            const emitB = Eventor.eventify('DEMO-B');
             assert.equal(emitter.listenerCount('DEMO-A'), 0);
             assert.equal(emitter.listenerCount('DEMO-b'), 0);
             assert.equal(emitter.listenerCount(eventify_1.ALL_EVENT), 0);
@@ -114,8 +114,8 @@ describe('Eventify', () => {
             emitA();
             emitB();
             assert(spy.callCount === 2);
-            assert(spy.firstCall.calledWithExactly({ name: 'DEMO-A', payload: undefined, extra: true }));
-            assert(spy.secondCall.calledWithExactly({ name: 'DEMO-B', payload: undefined, extra: true }));
+            assert(spy.firstCall.calledWithExactly({ name: 'DEMO-A', payload: undefined }));
+            assert(spy.secondCall.calledWithExactly({ name: 'DEMO-B', payload: undefined }));
             unsubscribe();
             assert.equal(emitter.listenerCount('DEMO-A'), 0);
             assert.equal(emitter.listenerCount('DEMO-b'), 0);
