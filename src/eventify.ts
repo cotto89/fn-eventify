@@ -54,7 +54,7 @@ export function create() {
 
         let $attacher: Attacher = {};
 
-        function emit(args?: Args) {
+        const emit = (args?: Args) => {
             const payload = callback ? callback(args) : undefined;
 
             if (payload instanceof Promise) {
@@ -70,18 +70,17 @@ export function create() {
             }
 
             return payload;
-        }
-
-        let f: any = emit;
-
-        f.subscribe = (listener: Listener) => subscribe(eventName, listener);
-
-        f.inject = (attacher: Attacher) => {
-            $attacher = attacher;
-            return f as Emit<Args, Payload>;
         };
 
-        let $emit: Emit<Args, Payload> = f;
+        const option = {
+            subscribe: (listener: Listener) => subscribe(eventName, listener),
+            inject: (attacher: Attacher) => {
+                $attacher = attacher;
+                return emit as Emit<Args, Payload>;
+            },
+        };
+
+        const $emit = Object.assign(emit, option);
         return $emit;
     }
 
