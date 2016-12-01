@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const assert = require('power-assert');
+const events = require('events');
 const sinon = require('sinon');
 const Eventify = require('./../src/index');
 const eventify_1 = require('./../src/eventify');
@@ -17,6 +18,16 @@ describe('Eventify', () => {
     beforeEach(() => {
         Eventor = Eventify.create();
         spy.reset();
+    });
+    describe('create with ExternalEventEmitter', () => {
+        it('accept ExternalEventEmitter', () => {
+            const ExternalEmitter = events.EventEmitter;
+            Eventor = Eventify.create(ExternalEmitter);
+            const action = Eventor.eventify('DEMO');
+            action.subscribe(spy);
+            action();
+            assert(spy.calledWithExactly({ name: 'DEMO', payload: undefined }));
+        });
     });
     describe('eventify()', () => {
         it('return emit(), emit.subscribe(), emit.inject', () => {

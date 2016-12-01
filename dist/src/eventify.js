@@ -14,8 +14,8 @@ function createEvent(name, payload, attacher = {}) {
     }
     return event;
 }
-function create() {
-    const emitter = new events.EventEmitter();
+function create(CustomEventEmitter) {
+    const emitter = CustomEventEmitter ? new CustomEventEmitter() : new events.EventEmitter();
     function subscribeAll(listener) {
         emitter.on(exports.ALL_EVENT, listener);
         return () => emitter.removeListener(exports.ALL_EVENT, listener);
