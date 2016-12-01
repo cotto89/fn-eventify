@@ -37,8 +37,8 @@ function createEvent(name: string, payload: any, attacher: Attacher = {}): Event
     return event;
 }
 
-export function create() {
-    const emitter = new events.EventEmitter();
+export function create<T extends events.EventEmitter>(CustomEventEmitter?: { new (): T }) {
+    const emitter = CustomEventEmitter ? new CustomEventEmitter() : new events.EventEmitter();
 
     function subscribeAll(listener: Listener) {
         emitter.on(ALL_EVENT, listener);

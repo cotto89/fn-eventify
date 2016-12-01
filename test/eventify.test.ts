@@ -1,4 +1,5 @@
 import assert = require('power-assert');
+import events = require('events');
 import sinon = require('sinon');
 import * as Eventify from './../src/index';
 import { ALL_EVENT } from './../src/eventify';
@@ -10,6 +11,19 @@ describe('Eventify', () => {
     beforeEach(() => {
         Eventor = Eventify.create();
         spy.reset();
+    });
+
+    describe('create with ExternalEventEmitter', () => {
+        it('accept ExternalEventEmitter', () => {
+            const ExternalEmitter = events.EventEmitter;
+            Eventor = Eventify.create(ExternalEmitter);
+
+            const action = Eventor.eventify('DEMO');
+            action.subscribe(spy);
+            action();
+
+            assert(spy.calledWithExactly({ name: 'DEMO', payload: undefined }));
+        });
     });
 
     describe('eventify()', () => {
