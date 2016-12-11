@@ -6,29 +6,22 @@ export interface EventifyEvent {
     [key: string]: any;
 }
 export declare type Listener = (event: EventifyEvent) => any;
-export declare type AttacherFn = (event: EventifyEvent) => EventifyEvent;
-export declare type AttacherObj = {
+export declare type Attacher = ((event: EventifyEvent) => EventifyEvent) | {
     [prop: string]: any;
 };
-export declare type Attacher = AttacherFn | AttacherObj;
-export declare type Emit<Args, Payload> = {
-    (args?: Args): Payload;
+export interface EmitOption<T> {
     subscribe: (listener: Listener) => Function;
-    inject: (attacher: Attacher) => Emit<Args, Payload>;
-};
+    inject: (attacher: Attacher) => T & EmitOption<T>;
+}
 export declare const ALL_EVENT: symbol;
 export declare function create<T extends events.EventEmitter>(CustomEventEmitter?: {
     new (): T;
 }): {
-        eventify: <Args, Payload>(eventName: string, callback?: ((args?: Args | undefined) => Payload) | undefined) => ((args?: Args | undefined) => Payload | undefined) & {
-            subscribe: (listener: Listener) => () => events.EventEmitter;
-            inject: (attacher: Attacher) => {
-                (args?: Args | undefined): Payload;
-                subscribe: (listener: Listener) => Function;
-                inject: (attacher: Attacher) => Emit<Args, Payload>;
-            };
-        };
-        subscribe: (eventName: string, listener: Listener) => () => events.EventEmitter;
-        subscribeAll: (listener: Listener) => () => events.EventEmitter;
-        _emitter: events.EventEmitter;
+    eventify: {
+        <R, T extends () => R>(eventName: string, action?: T | undefined): T & EmitOption<T>;
+        <A, R, T extends (a: A) => R>(eventName: string, action?: T | undefined): T & EmitOption<T>;
     };
+    subscribe: (eventName: string, listener: Listener) => () => events.EventEmitter;
+    subscribeAll: (listener: Listener) => () => events.EventEmitter;
+    _emitter: events.EventEmitter;
+};

@@ -24,10 +24,10 @@ function create(CustomEventEmitter) {
         emitter.on(eventName, listener);
         return () => emitter.removeListener(eventName, listener);
     }
-    function eventify(eventName, callback) {
+    function eventify(eventName, action) {
         let $attacher = {};
-        const emit = (args) => {
-            const payload = callback ? callback(args) : undefined;
+        const emit = (value) => {
+            const payload = action ? action(value) : undefined;
             if (payload instanceof Promise) {
                 Promise.resolve(payload).then(v => {
                     const event = createEvent(eventName, v, $attacher);
@@ -42,15 +42,12 @@ function create(CustomEventEmitter) {
             }
             return payload;
         };
-        const option = {
-            subscribe: (listener) => subscribe(eventName, listener),
-            inject: (attacher) => {
-                $attacher = attacher;
-                return emit;
-            },
+        emit.subscribe = (listener) => subscribe(eventName, listener);
+        emit.inject = (attacher) => {
+            $attacher = attacher;
+            return emit;
         };
-        const $emit = Object.assign(emit, option);
-        return $emit;
+        return emit;
     }
     return {
         eventify,
