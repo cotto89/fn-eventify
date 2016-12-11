@@ -7,15 +7,11 @@ export interface EventifyEvent {
 }
 
 export type Listener = (event: EventifyEvent) => any;
+export type Attacher = ((event: EventifyEvent) => EventifyEvent) | { [prop: string]: any }
 
-export type AttacherFn = (event: EventifyEvent) => EventifyEvent
-export type AttacherObj = { [prop: string]: any }
-export type Attacher = AttacherFn | AttacherObj
-
-export type Emit<Args, Payload> = {
-    (args?: Args): Payload;
+export interface EmitOption<T> {
     subscribe: (listener: Listener) => Function;
-    inject: (attacher: Attacher) => Emit<Args, Payload>
+    inject: (attacher: Attacher) => T & EmitOption<T>;
 }
 
 export const ALL_EVENT = Symbol('ALL_EVENT');
@@ -50,12 +46,14 @@ export function create<T extends events.EventEmitter>(CustomEventEmitter?: { new
         return () => emitter.removeListener(eventName, listener);
     }
 
-    function eventify<Args, Payload>(eventName: string, callback?: (args?: Args) => Payload) {
+    function eventify<R, T extends () => R>(eventName: string, action?: T): T & EmitOption<T>
+    function eventify<A, R, T extends (a: A) => R>(eventName: string, action?: T): T & EmitOption<T>
+    function eventify<T extends Function>(eventName: string, action?: Function): T & EmitOption<T> {
 
         let $attacher: Attacher = {};
 
-        const emit = (args?: Args) => {
-            const payload = callback ? callback(args) : undefined;
+        const emit: any = (value?: any) => {
+            const payload = action ? action(value as any) : undefined;
 
             if (payload instanceof Promise) {
                 Promise.resolve(payload).then(v => {
@@ -72,16 +70,13 @@ export function create<T extends events.EventEmitter>(CustomEventEmitter?: { new
             return payload;
         };
 
-        const option = {
-            subscribe: (listener: Listener) => subscribe(eventName, listener),
-            inject: (attacher: Attacher) => {
-                $attacher = attacher;
-                return emit as Emit<Args, Payload>;
-            },
+        emit.subscribe = (listener: Listener) => subscribe(eventName, listener);
+        emit.inject = (attacher: Attacher) => {
+            $attacher = attacher;
+            return emit as (T & EmitOption<T>);
         };
 
-        const $emit = Object.assign(emit, option);
-        return $emit;
+        return emit as T & EmitOption<T>;
     }
 
     return {
